@@ -1,0 +1,38 @@
+import org.exolab.castor.builder.SourceGenerator;
+
+import java.io.File;
+
+public class CastorCodegenRunner {
+    public static void main(String[] args) {
+        File wsdlDir = new File("src/main/resources/wsdl");
+
+        File[] schemaFiles = wsdlDir.listFiles((dir, name) -> name.endsWith(".xsd"));
+
+        if (schemaFiles == null || schemaFiles.length == 0) {
+            System.out.println("No .xsd files found in /wsdl directory.");
+            return;
+        }
+
+        for (File schema : schemaFiles) {
+            // Derive the submodule from filename: e.g. accountinformation.xsd → accountinformation
+            String moduleName = schema.getName().replace(".xsd", "");
+            String targetPackage = "com.yourcompany.si." + moduleName + ".dependencies";
+
+            System.out.println("Generating code for schema: " + schema.getName());
+            System.out.println(" → Package: " + targetPackage);
+
+            try {
+                String[] generatorArgs = {
+                        "-i", schema.getPath(),
+                        "-package", targetPackage,
+                        "-o", "src/main/java"
+                };
+
+                SourceGenerator.main(generatorArgs);
+            } catch (Exception e) {
+                System.err.println("Error generating code for: " + schema.getName());
+                e.printStackTrace();
+            }
+        }
+    }
+}
